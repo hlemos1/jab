@@ -28,7 +28,7 @@ Sites dispatch owns sign-in and sign-out. `getChatGPTUser()` reads the trusted p
 
 The guest cookie remains a separate HTTP-only, Secure, SameSite=Lax UUID. Entering or leaving an account preserves guest access without importing guest sessions or credits. The signed-in account starts with its own profile. The API returns only identity mode, optional display name, and the native top-level sign-in/out URLs. It does not return the account scope or email. GET is non-cacheable.
 
-Profile names require 1–32 Unicode code points without control characters; avatars are restricted to 01–04. Reset deletes only the current scope's demo profile, sessions and redemptions in a D1 batch, preserving login and the guest cookie. It cannot remove public Devnet records. No coach roles, arena memberships or physical identity checks exist in this stage.
+Profile names require 1–32 Unicode code points without control characters; avatars are restricted to 01–04. Reset deletes only the current scope's demo profile, sessions and redemptions in a D1 batch, preserving login and the guest cookie. It cannot remove public Devnet records. Stage 5 adds test-unit roles and membership separately, described below. Physical identity checks are not implemented.
 
 ## Data contracts
 
@@ -123,7 +123,21 @@ Creation request IDs replay identical input even after the run has progressed. L
 
 The React panel synchronizes every three seconds, anchors display projection to serverNow plus a monotonic browser clock, and rejects superseded reads after mutations. It flags failed/old synchronization and disables commands until recovery. Display time may lag by network latency; server commands and persisted state are authoritative. Browser suspension/reload is repaired by the next synchronization.
 
-No shared gym coach role is granted: authorization is ownership under existing account/guest identity. Timing completion does not produce physical proof, athlete participation, telemetry or JAB. The independent athlete replay remains a separate demonstration.
+Class authorization remains ownership under existing account/guest identity. Stage 5 unit roles do not expand these class permissions. Timing completion does not produce physical proof, athlete participation, telemetry or JAB. The independent athlete replay remains a separate demonstration.
+
+## Stage 5: account-linked test units
+
+`GET/POST /api/units` requires native trusted account identity; guests receive 401. Migration 0005 adds units, memberships and invitation tables. A unique owner scope limits each account to one managed unit. The owner is represented as an immutable manager, not a mutable membership row. Active membership is unique per unit/account; a removed row can be reactivated only by accepting a fresh invitation, preserving its opaque member ID.
+
+GET returns units owned by or actively joined by the caller. Managers see members and invitation metadata, coaches see members, athletes see only their own membership and aggregate member count. Responses omit account scopes, email and invitation secrets. Membership is revalidated when constructing the response. Every mutation resolves ownership or current membership on the server; only the manager can invite, revoke, change roles or remove another member. A member can leave; the owner cannot leave or transfer ownership. Creating a unit never grants access to existing units or official StrikeX status.
+
+Codes contain 128 random bits encoded as 32 hex characters, expire in seven days, and are stored only as SHA-256 hashes. They are bearer invitations, intentionally not email-bound. Invitation creation uses a stable request ID; identical retries return metadata with no recoverable plaintext. Claim and membership insertion execute in a transactional D1 batch, tied to a fresh server-generated claim nonce. Failed insertion rolls back the claim. Used-code retry is harmless for an already active member and cannot resurrect a removed member or change their role.
+
+Conditional SQL enforces 50 people including the manager, ten joined units per account, ten pending invitations and 100 total invitations per unit. Limits and expiry are checked at write time. Names are bounded to 80 Unicode code points for units and 60 for members, with control characters rejected. Requests reject unknown fields, unsupported origins, invalid IDs and payloads above 20 KiB. Responses are non-cacheable. Unit deletion, rename, owner transfer and invitation archiving are deferred.
+
+The client polls access every 15 seconds and on visibility changes, ignores stale reads after mutations, retains forms after connection errors and stops management controls when synchronization fails. The invitation secret is held only in component memory and disappears after leaving the page or after use/revocation. Classes and closeout rosters are still private demo labels; they are not automatically linked or shared by membership. The next delivery must bind new unit classes to stable member IDs and enforce unit roles in every class operation before exposing shared controls.
+
+Verification: 85 TypeScript tests plus 34 SQLite invariant tests. Fourteen new actual-handler tests use mocked trusted account identity and migrated SQLite; nine new concurrent SQL tests cover invitation claims, revocation, rollback and capacity races. These tests do not establish a completed real browser sign-in; Stage 5 visual acceptance requires two separate authenticated accounts.
 
 Stage 3 verification includes pure clock boundaries, actual route handlers backed by migrated SQLite and separate concurrent SQLite invariants. Full suite: 53 TypeScript + 20 SQLite tests. User visual acceptance covers navigation, responsive controls, timing display and browser reload behavior.
 

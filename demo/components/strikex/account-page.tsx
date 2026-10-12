@@ -11,9 +11,10 @@ type Props = {
   onEdit: () => void;
   onTrain: () => void;
   onHistory: () => void;
+  onUnits: () => void;
 };
 
-export function AccountPage({ lang, data, ready, busy, onEdit, onTrain, onHistory }: Props) {
+export function AccountPage({ lang, data, ready, busy, onEdit, onTrain, onHistory, onUnits }: Props) {
   const pt = lang === 'pt';
   const signedIn = data.identity?.mode === 'account';
   const profile = data.profile;
@@ -31,6 +32,7 @@ export function AccountPage({ lang, data, ready, busy, onEdit, onTrain, onHistor
     <p className="page-subtitle">{pt ? 'Seu perfil, suas batalhas e o próximo passo na arena.' : 'Your profile, your battles and your next step in the arena.'}</p>
 
     {!ready ? <div className="account-loading" role="status"><Loader2 className="spin" size={24}/>{pt ? 'Carregando seu perfil…' : 'Loading your profile…'}</div> : <>
+      <div className="unit-account-entry"><button className="btn btn-subtle" onClick={onUnits}>{pt ? 'Unidade e equipe' : 'Unit & team'}<ArrowRight size={17}/></button></div>
       <div className="account-grid">
         <article className="athlete-card">
           <div className="account-card-top"><span className="tiny-label">{pt ? 'PERFIL DO ATLETA' : 'ATHLETE PROFILE'}</span><span className={`account-status ${signedIn ? 'connected' : ''}`}><span/>{signedIn ? (pt ? 'Conta conectada' : 'Account connected') : (pt ? 'Visitante' : 'Guest')}</span></div>

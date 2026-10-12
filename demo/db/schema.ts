@@ -39,3 +39,19 @@ export const classReports = sqliteTable("demo_class_reports", {
   createdAt: text("created_at").notNull(), requestId: text("request_id").notNull(),
   payload: text("payload").notNull(), hash: text("hash").notNull(),
 }, (t) => [primaryKey({columns: [t.scopeId, t.id]}), uniqueIndex("demo_class_reports_request").on(t.scopeId, t.requestId)]);
+
+// Account-linked test units; deliberately separate from private demo records.
+export const units = sqliteTable("demo_units", {
+  id: text("id").primaryKey(), ownerScope: text("owner_scope").notNull(),
+  name: text("name").notNull(), ownerName: text("owner_name").notNull(), createdAt: text("created_at").notNull(),
+}, (t) => [uniqueIndex("demo_units_owner").on(t.ownerScope)]);
+export const unitMembers = sqliteTable("demo_unit_members", {
+  unitId: text("unit_id").notNull(), scopeId: text("scope_id").notNull(), id: text("id").notNull(),
+  name: text("name").notNull(), role: text("role").notNull(), joinedAt: text("joined_at").notNull(),
+  active: integer("active").notNull().default(1),
+}, (t) => [primaryKey({columns: [t.unitId, t.scopeId]}), uniqueIndex("demo_unit_members_id").on(t.id)]);
+export const unitInvites = sqliteTable("demo_unit_invites", {
+  id: text("id").primaryKey(), unitId: text("unit_id").notNull(), role: text("role").notNull(),
+  codeHash: text("code_hash").notNull(), createdAt: text("created_at").notNull(), expiresAt: text("expires_at").notNull(),
+  revokedAt: text("revoked_at"), claimedBy: text("claimed_by"), claimedAt: text("claimed_at"), claimNonce: text("claim_nonce"),
+}, (t) => [uniqueIndex("demo_unit_invites_hash").on(t.codeHash)]);
