@@ -104,3 +104,11 @@ Replace the simulator with versioned sensor event ingestion; define device enrol
 Blockchain can attest to publication of a result. Authenticating the physical effort remains an upstream hardware, identity and validation problem.
 
 Stage 1 verification adds identity isolation, cookie spoof rejection, profile bounds and actual route-handler tests with mocked trusted identity. Browser sign-in and cross-device UX require the user acceptance pass; unit tests do not establish a completed provider login.
+
+## Stage 2: class planning
+
+`POST /api/classes` validates a bounded 1–11-athlete roster and optional station exclusions, generates a complete 12-round matrix on the server, and persists it in `demo_class_plans` before returning. Scope comes from the same server identity resolver as the athlete demo. Fixed capacities are 3/3/2/1/1/1. No mandatory all-station coverage. A saved plan is a demonstration allocation, not a workout receipt.
+
+The composite `(scope_id,id)` primary key makes generation idempotent. Accepted raw input is compared canonically before current validation on retries, preserving historical plans. A conditional insert enforces 20 plans per scope atomically. Cross-scope reads and deletion are rejected; request JSON cannot choose ownership. Migration 0002 only adds the new table. Names are displayed as text and never enter a blockchain receipt through class planning.
+
+Original production Solver code is not integrated. This independent demonstrator covers capacity, manual exclusions and no adjacent station repetition. Category restrictions, weekly novelty, recruit protection, coach authorization, booking, check-in and server class clock remain future work.

@@ -35,6 +35,7 @@ This standalone demonstrator was built on October 12, 2026 with AI coding assist
 - `app/page.tsx`, `app/globals.css`: athlete experience and technical lab.
 - `components/strikex/`: account page, arena art, shared types, stations and EN/PT copy.
 - `lib/identity.ts`, `app/chatgpt-auth.ts`: server identity and isolated demo scopes.
+- `lib/class-planner.ts`, `app/api/classes/route.ts`: bounded class allocation and scope-owned saved plans.
 - `lib/effort.ts`: deterministic generator and untrusted-input validation.
 - `app/api/demo/route.ts`: account/guest API, digest generation, atomic writes and receipt lifecycle.
 - `lib/solana.ts`: zero-dependency Ed25519 signing, legacy Memo serialization and RPC verification.
@@ -51,6 +52,7 @@ pnpm install
 pnpm exec tsc --noEmit --incremental false
 node --test tests/*.test.ts
 python3 tests/db_invariants.py
+python3 tests/classes_db_invariants.py
 pnpm run build
 ```
 
@@ -68,4 +70,8 @@ Copyright 2026 IRON GUARDIAN - LDA. Public availability of this demonstrator doe
 
 ## Current delivery
 
-Stage 1: athlete account and profile, with visual validation pending. See `docs/STAGE-01-ACCEPTANCE.md`. Class operations, production Solver integration and coach permissions remain later deliveries.
+Stage 1: athlete account and profile, visually accepted by the user. Stage 2: server-generated and saved demonstration class plans for up to 11 athletes, station exclusions, 12 rounds, round/matrix/athlete views. See `docs/STAGE-02-ACCEPTANCE.md`. Production Solver integration, coach permissions and live class operations remain later deliveries.
+
+## Class planner boundaries
+
+The Turma/Class tab generates a demonstration schedule with fixed capacities 3/3/2/1/1/1, no consecutive station repetition and manual per-athlete exclusions. There is no all-station coverage requirement. The full 12-round plan is computed on the server and stored before it is shown. Plans are private to the current account/guest scope, capped at 20, and removable individually. Viewing a plan does not run a class or award JAB. The production Solver’s weekly history, category and protection rules are not integrated.

@@ -15,3 +15,9 @@ export const redemptions = sqliteTable("demo_redemptions", {
   guestId: text("guest_id").notNull(), benefit: text("benefit").notNull(),
   cost: integer("cost").notNull(), createdAt: text("created_at").notNull(),
 }, (t) => [primaryKey({columns:[t.guestId,t.benefit]})]);
+
+export const classPlans = sqliteTable("demo_class_plans", {
+  scopeId: text("scope_id").notNull(), id: text("id").notNull(),
+  createdAt: text("created_at").notNull(), input: text("input").notNull(),
+  plan: text("plan").notNull(),
+}, (t) => [primaryKey({columns:[t.scopeId,t.id]})]);
