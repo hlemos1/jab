@@ -2,7 +2,8 @@
 
 Copyright 2026 IRON GUARDIAN - LDA. All rights reserved.
 
-This repository contains public-facing documentation for JAB$ and StrikeX.
+This repository contains public-facing documentation for JAB$ and StrikeX and
+a standalone demonstration authored on October 12, 2026 with AI coding assistance.
 Public availability does not grant an open-source license to proprietary
 software, firmware, hardware designs, branding or training content.
 
