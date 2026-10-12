@@ -22,6 +22,13 @@
       "when": 1791800041934,
       "tag": "0002_salty_war_machine",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791839487534,
+      "tag": "0003_noisy_vulture",
+      "breakpoints": true
     }
   ]
 }

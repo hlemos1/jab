@@ -111,4 +111,18 @@ Stage 1 verification adds identity isolation, cookie spoof rejection, profile bo
 
 The composite `(scope_id,id)` primary key makes generation idempotent. Accepted raw input is compared canonically before current validation on retries, preserving historical plans. A conditional insert enforces 20 plans per scope atomically. Cross-scope reads and deletion are rejected; request JSON cannot choose ownership. Migration 0002 only adds the new table. Names are displayed as text and never enter a blockchain receipt through class planning.
 
-Original production Solver code is not integrated. This independent demonstrator covers capacity, manual exclusions and no adjacent station repetition. Category restrictions, weekly novelty, recruit protection, coach authorization, booking, check-in and server class clock remain future work.
+Original production Solver code is not integrated. This independent demonstrator covers capacity, manual exclusions and no adjacent station repetition. Category restrictions, weekly novelty, recruit protection, shared coach authorization, booking and check-in remain future work. Stage 3 adds an owner-scoped demonstration clock below.
+
+## Stage 3: class operation
+
+`demo_class_runs` stores a scoped immutable plan/input/timing snapshot, revision, server clock state, active flag and the latest command receipt. A partial unique index on scope where active=1 permits only one ready/running/paused run. The insertion enforces a 20-record cap atomically. GET and mutations materialize elapsed completion with revision CAS; no background job is required for elapsed time to remain correct.
+
+`lib/class-run.ts` projects 12 work periods and 11 rests from persisted elapsedMs/startedAt. Start/pause/resume/interrupt only accept valid transitions. The API rejects client timestamps, state, elapsed values, ownership and unknown fields. Input rounds last 5–300 seconds and rests 0–120 whole seconds. Ended classes cannot revive. Delete requires ownership, terminal state and the observed revision.
+
+Creation request IDs replay identical input even after the run has progressed. Latest-command retries with the same canonical payload return current state; older retries receive a stale-revision conflict. This is bounded retry protection, not an audit log of every command.
+
+The React panel synchronizes every three seconds, anchors display projection to serverNow plus a monotonic browser clock, and rejects superseded reads after mutations. It flags failed/old synchronization and disables commands until recovery. Display time may lag by network latency; server commands and persisted state are authoritative. Browser suspension/reload is repaired by the next synchronization.
+
+No shared gym coach role is granted: authorization is ownership under existing account/guest identity. Timing completion does not produce physical proof, athlete participation, telemetry or JAB. The independent athlete replay remains a separate demonstration.
+
+Stage 3 verification includes pure clock boundaries, actual route handlers backed by migrated SQLite and separate concurrent SQLite invariants. Full suite: 53 TypeScript + 20 SQLite tests. User visual acceptance covers navigation, responsive controls, timing display and browser reload behavior.

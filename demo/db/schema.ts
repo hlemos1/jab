@@ -1,4 +1,5 @@
-import { integer, sqliteTable, text, primaryKey } from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text, primaryKey, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const profiles = sqliteTable("demo_profiles", {
   id: text("id").primaryKey(), name: text("name").notNull(), avatar: text("avatar").notNull(),
@@ -21,3 +22,12 @@ export const classPlans = sqliteTable("demo_class_plans", {
   createdAt: text("created_at").notNull(), input: text("input").notNull(),
   plan: text("plan").notNull(),
 }, (t) => [primaryKey({columns:[t.scopeId,t.id]})]);
+
+export const classRuns = sqliteTable("demo_class_runs", {
+  scopeId: text("scope_id").notNull(), id: text("id").notNull(),
+  planId: text("plan_id").notNull(), createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(), revision: integer("revision").notNull().default(0),
+  input: text("input").notNull(), plan: text("plan").notNull(), timing: text("timing").notNull(),
+  state: text("state").notNull(), active: integer("active").notNull().default(1),
+  lastCommandId: text("last_command_id"), lastCommandJson: text("last_command_json"),
+}, (t) => [primaryKey({columns: [t.scopeId, t.id]}), uniqueIndex("demo_class_runs_one_active").on(t.scopeId).where(sql`${t.active} = 1`)]);

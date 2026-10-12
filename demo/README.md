@@ -12,6 +12,7 @@ A working, deliberately bounded web prototype for the Colosseum 2026 submission.
 4. Inspect the session digest and request an optional Solana Devnet receipt.
 5. Redeem a fictional guest pass for 10 demo JAB or gear credit for 25. Nothing is purchased or booked.
 6. Open the technical lab to test valid, inconsistent and replayed sessions.
+7. In Class, save a class plan, open Coach panel and prepare a timed demo. Start, pause, reload and resume the server-backed 12-round clock.
 
 ## Actual scope
 
@@ -36,6 +37,7 @@ This standalone demonstrator was built on October 12, 2026 with AI coding assist
 - `components/strikex/`: account page, arena art, shared types, stations and EN/PT copy.
 - `lib/identity.ts`, `app/chatgpt-auth.ts`: server identity and isolated demo scopes.
 - `lib/class-planner.ts`, `app/api/classes/route.ts`: bounded class allocation and scope-owned saved plans.
+- `lib/class-run.ts`, `app/api/class-runs/route.ts`, `components/strikex/coach-page.tsx`: server-authoritative class timing and owner-scoped demo controls.
 - `lib/effort.ts`: deterministic generator and untrusted-input validation.
 - `app/api/demo/route.ts`: account/guest API, digest generation, atomic writes and receipt lifecycle.
 - `lib/solana.ts`: zero-dependency Ed25519 signing, legacy Memo serialization and RPC verification.
@@ -53,10 +55,11 @@ pnpm exec tsc --noEmit --incremental false
 node --test tests/*.test.ts
 python3 tests/db_invariants.py
 python3 tests/classes_db_invariants.py
+python3 tests/class_runs_db_invariants.py
 pnpm run build
 ```
 
-The managed deployment applies tracked D1 migrations and binds the database as `DB`. For an independent Cloudflare deployment, provide a D1 database binding and apply `drizzle/*.sql` before serving requests. The GitHub export omits the managed Site project ID; configure your own deployment identity and D1 binding.
+The managed deployment applies tracked D1 migrations and binds the database as `DB`. For an independent Cloudflare deployment, provide a D1 database binding and apply `drizzle/*.sql` before serving requests. The exported `.openai/hosting.json` omits the private hosting project ID; configure your own deployment before publishing.
 
 Native ChatGPT sign-in is provided by Sites dispatch; independent hosting must supply a trusted identity adapter and must not trust client-supplied identity headers. No real wallet, payment credentials or separate email service are needed. Receipt sponsorship uses an ephemeral server-only key funded only by the public Devnet faucet. This is a demo convenience, not production custody or a guaranteed available sponsorship service.
 
@@ -70,8 +73,12 @@ Copyright 2026 IRON GUARDIAN - LDA. Public availability of this demonstrator doe
 
 ## Current delivery
 
-Stage 1: athlete account and profile, visually accepted by the user. Stage 2: server-generated and saved demonstration class plans for up to 11 athletes, station exclusions, 12 rounds, round/matrix/athlete views. See `docs/STAGE-02-ACCEPTANCE.md`. Production Solver integration, coach permissions and live class operations remain later deliveries.
+Stage 1: athlete account and profile, visually accepted by the user. Stage 2: server-generated and saved demonstration class plans for up to 11 athletes, station exclusions, 12 rounds, round/matrix/athlete views. Stage 3: own-class demo coaching with start/pause/resume/interrupt, server time, persistent snapshots and conflict-safe commands. See `docs/STAGE-03-ACCEPTANCE.md` for visual acceptance. Production Solver integration, shared gym coach roles, participation and physical telemetry remain later deliveries.
 
 ## Class planner boundaries
 
 The Turma/Class tab generates a demonstration schedule with fixed capacities 3/3/2/1/1/1, no consecutive station repetition and manual per-athlete exclusions. There is no all-station coverage requirement. The full 12-round plan is computed on the server and stored before it is shown. Plans are private to the current account/guest scope, capped at 20, and removable individually. Viewing a plan does not run a class or award JAB. The production Solver’s weekly history, category and protection rules are not integrated.
+
+## Coach demo boundaries
+
+Each account/guest scope may have one open class and 20 saved runs. The default rehearsal is 94 seconds (12 × 6 seconds of work + 11 × 2 seconds of rest). Reloading does not pause a running class. Commands use server time and an observed revision; stale commands cannot rewind a run. Completed/interrupted runs cannot resume and can be deleted individually. Saved runs preserve the original class snapshot even if the plan is deleted. These records do not generate points or prove physical effort. Shared coach permissions are not implemented. Reset demo does not delete class plans or runs.
