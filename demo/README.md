@@ -13,6 +13,7 @@ A working, deliberately bounded web prototype for the Colosseum 2026 submission.
 5. Redeem a fictional guest pass for 10 demo JAB or gear credit for 25. Nothing is purchased or booked.
 6. Open the technical lab to test valid, inconsistent and replayed sessions.
 7. In Class, save a class plan, open Coach panel and prepare a timed demo. Start, pause, reload and resume the server-backed 12-round clock.
+8. After a class ends, review each athlete as complete, partial or absent. Confirm the demo closeout, inspect the immutable receipt, verify its checksum and export JSON.
 
 ## Actual scope
 
@@ -38,6 +39,7 @@ This standalone demonstrator was built on October 12, 2026 with AI coding assist
 - `lib/identity.ts`, `app/chatgpt-auth.ts`: server identity and isolated demo scopes.
 - `lib/class-planner.ts`, `app/api/classes/route.ts`: bounded class allocation and scope-owned saved plans.
 - `lib/class-run.ts`, `app/api/class-runs/route.ts`, `components/strikex/coach-page.tsx`: server-authoritative class timing and owner-scoped demo controls.
+- `lib/class-report.ts`, `app/api/class-reports/route.ts`, `components/strikex/class-reports-panel.tsx`: manual demo closeout, canonical checksums and immutable receipts.
 - `lib/effort.ts`: deterministic generator and untrusted-input validation.
 - `app/api/demo/route.ts`: account/guest API, digest generation, atomic writes and receipt lifecycle.
 - `lib/solana.ts`: zero-dependency Ed25519 signing, legacy Memo serialization and RPC verification.
@@ -56,6 +58,7 @@ node --test tests/*.test.ts
 python3 tests/db_invariants.py
 python3 tests/classes_db_invariants.py
 python3 tests/class_runs_db_invariants.py
+python3 tests/class_reports_db_invariants.py
 pnpm run build
 ```
 
@@ -73,7 +76,7 @@ Copyright 2026 IRON GUARDIAN - LDA. Public availability of this demonstrator doe
 
 ## Current delivery
 
-Stage 1: athlete account and profile, visually accepted by the user. Stage 2: server-generated and saved demonstration class plans for up to 11 athletes, station exclusions, 12 rounds, round/matrix/athlete views. Stage 3: own-class demo coaching with start/pause/resume/interrupt, server time, persistent snapshots and conflict-safe commands. See `docs/STAGE-03-ACCEPTANCE.md` for visual acceptance. Production Solver integration, shared gym coach roles, participation and physical telemetry remain later deliveries.
+Stage 1: athlete account and profile, visually accepted by the user. Stage 2: server-generated and saved demonstration class plans for up to 11 athletes, station exclusions, 12 rounds, round/matrix/athlete views. Stage 3: own-class demo coaching with start/pause/resume/interrupt, server time, persistent snapshots and conflict-safe commands. Stage 4: manual demonstration participation review and immutable closeout receipts with export and checksum verification. See `docs/STAGE-04-ACCEPTANCE.md` for visual acceptance. Production Solver integration, shared gym coach roles, participation and physical telemetry remain later deliveries.
 
 ## Class planner boundaries
 
@@ -82,3 +85,9 @@ The Turma/Class tab generates a demonstration schedule with fixed capacities 3/3
 ## Coach demo boundaries
 
 Each account/guest scope may have one open class and 20 saved runs. The default rehearsal is 94 seconds (12 × 6 seconds of work + 11 × 2 seconds of rest). Reloading does not pause a running class. Commands use server time and an observed revision; stale commands cannot rewind a run. Completed/interrupted runs cannot resume and can be deleted individually. Saved runs preserve the original class snapshot even if the plan is deleted. These records do not generate points or prove physical effort. Shared coach permissions are not implemented. Reset demo does not delete class plans or runs.
+
+## Class closeout boundaries
+
+Saved reports are owner-scoped `demo_declared` records, not athlete account attestations or sensor evidence. Every roster member must be reviewed explicitly. Partial participation cannot exceed fully elapsed work rounds. One report per class; matching retries recover the original, changed declarations conflict. Reports contain a complete snapshot and survive deletion of the original run/plan. Up to 100 reports per scope; no report deletion or correction workflow yet. Reset demo preserves reports. No points, physical score or Solana transaction is created by closeout.
+
+The report checksum is SHA-256 of UTF-8 canonical payload JSON (object keys sorted recursively, arrays preserved). `verifyReport()` checks envelope, schema and checksum. This is integrity verification against the saved digest, not an issuer signature.

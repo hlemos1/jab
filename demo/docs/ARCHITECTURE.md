@@ -126,3 +126,15 @@ The React panel synchronizes every three seconds, anchors display projection to 
 No shared gym coach role is granted: authorization is ownership under existing account/guest identity. Timing completion does not produce physical proof, athlete participation, telemetry or JAB. The independent athlete replay remains a separate demonstration.
 
 Stage 3 verification includes pure clock boundaries, actual route handlers backed by migrated SQLite and separate concurrent SQLite invariants. Full suite: 53 TypeScript + 20 SQLite tests. User visual acceptance covers navigation, responsive controls, timing display and browser reload behavior.
+
+## Stage 4: declared participation and closeout
+
+`POST /api/class-reports` accepts only action, runId, requestId and the full declaration roster. Terminal persisted class state is required. The client cannot set the timestamp, owner, digest or source. Each declaration is complete/12, partial/0–11 bounded by wholly elapsed work rounds (zero requires positive elapsed time), or absent/0. Clock completion itself never supplies attendance. Roster IDs are local demo labels, not authenticated athlete identities.
+
+Migration 0004 adds `demo_class_reports` with `(scope_id,id)` primary key, a unique original request ID per scope, creation timestamp, full canonical payload and hash. The insertion selects the owned, terminal source run at its observed revision and checks the 100-report limit atomically. If deletion wins the race, no report is inserted; if closure wins, its self-contained snapshot survives later source deletion. No foreign-key dependency, points write, sensor event or blockchain transaction is introduced.
+
+Repeat declarations normalize into saved roster order and return the original report, timestamp and hash. A different declaration for the same run cannot overwrite it. Additional IDs used only to replay a report are not persisted as additional command receipts. There is no report edit, deletion or correction workflow yet; limits and export are visible in the UI.
+
+Payload source `demo_declared` and version `demo-closeout-1` distinguish this artifact from synthetic session results and any future operational attestation. SHA-256 covers UTF-8 JSON with recursively sorted object keys and preserved array order. The exported envelope includes id, createdAt, payload and hash; `verifyReport()` checks consistency and checksum. The checksum is not a signature and cannot prove physical participation or issuer authenticity.
+
+The client uses explicit unreviewed initial states, per-athlete review, a final acknowledgment, stable request IDs for retry and stale-read protection around saves. The saved card replaces the editor and can be recovered from independent closeout history after run deletion. Full verification now includes 71 TypeScript and 25 SQLite tests.

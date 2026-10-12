@@ -31,3 +31,11 @@ export const classRuns = sqliteTable("demo_class_runs", {
   state: text("state").notNull(), active: integer("active").notNull().default(1),
   lastCommandId: text("last_command_id"), lastCommandJson: text("last_command_json"),
 }, (t) => [primaryKey({columns: [t.scopeId, t.id]}), uniqueIndex("demo_class_runs_one_active").on(t.scopeId).where(sql`${t.active} = 1`)]);
+
+// Immutable declared demonstration closeouts. No foreign key: the snapshot
+// remains available when the owner deletes the originating run or class plan.
+export const classReports = sqliteTable("demo_class_reports", {
+  scopeId: text("scope_id").notNull(), id: text("id").notNull(),
+  createdAt: text("created_at").notNull(), requestId: text("request_id").notNull(),
+  payload: text("payload").notNull(), hash: text("hash").notNull(),
+}, (t) => [primaryKey({columns: [t.scopeId, t.id]}), uniqueIndex("demo_class_reports_request").on(t.scopeId, t.requestId)]);
