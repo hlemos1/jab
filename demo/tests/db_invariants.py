@@ -122,6 +122,23 @@ class StorageInvariants(unittest.TestCase):
                 if f'FROM {table}' in sql:
                     self.assertIn('guest_id=?', sql)
 
+    def test_account_guest_and_other_account_records_stay_separate_on_reset(self):
+        guest = '11111111-1111-4111-8111-111111111111'
+        account_a = 'account:' + 'a' * 64
+        account_b = 'account:' + 'b' * 64
+        for scope, reward in [(guest, 30), (account_a, 20), (account_b, 15)]:
+            self.credit(guest=scope, reward=reward)
+            self.redeem(guest=scope)
+        with self.connect() as db:
+            for prefix in ['DELETE FROM demo_redemptions', 'DELETE FROM demo_sessions', 'DELETE FROM demo_profiles']:
+                db.execute(query(prefix), (account_a,))
+            self.assertIsNone(db.execute(READ_SESSION, (account_a, 'session-1')).fetchone())
+            self.assertIsNotNone(db.execute(READ_SESSION, (guest, 'session-1')).fetchone())
+            self.assertIsNotNone(db.execute(READ_SESSION, (account_b, 'session-1')).fetchone())
+        self.assertEqual(self.balance(account_a), 0)
+        self.assertEqual(self.balance(guest), 20)
+        self.assertEqual(self.balance(account_b), 5)
+
     def test_parallel_session_limit_is_atomic(self):
         for index in range(29):
             self.credit(session=f'prefill-{index}', reward=1)

@@ -17,22 +17,24 @@ flowchart TD
 ```
 
 - `lib/effort.ts` is a pure TypeScript module shared by the replay and server. Server validation is authoritative: no submitted client score or reward is accepted.
-- `app/api/demo/route.ts` is the application boundary. It parses bounded JSON, validates actions, scopes reads and writes to the guest cookie, and persists results.
+- `app/api/demo/route.ts` is the application boundary. It parses bounded JSON, validates actions, scopes every read and write to the server-resolved account or guest identity, and persists results.
 - D1 holds profiles, completed sessions and redemptions. Balances are derived from recorded rewards minus recorded redemption costs, not browser storage.
 - `lib/solana.ts` constructs, signs and submits a legacy Memo transaction using server Web Crypto. It verifies the transaction's successful execution and exact Memo content before returning `confirmed`.
 - The browser provides the replay, results, history and technical explanation. The replay is synthetic and does not capture camera, sensor or biometric data.
 
-## Guest identity
+## Account and guest identity
 
-An HTTP-only, Secure, SameSite=Lax cookie holds a generated UUID. It is a bearer identifier for an isolated demo workspace, not an authenticated account or a wallet. Display name/avatar are demo profile data. Explicit cross-origin POSTs are rejected; JSON is required. Real authentication, account recovery and identity verification are outside this scope.
+Sites dispatch owns sign-in and sign-out. `getChatGPTUser()` reads the trusted per-Site identity on the server. `lib/identity.ts` maps it to `account:SHA256(userId)`, independent of browser cookies. Never accept account ownership from request JSON or user-supplied cookie contents. On independent hosting this dispatch trust boundary must be implemented before enabling account mode; exposing the Worker directly with trusted-header auth would be unsafe.
 
-Reset deletes only the current guest's profile, sessions and redemptions, using a D1 batch, then rotates the guest identifier. It cannot remove a previously submitted public Devnet transaction. Losing the cookie loses access to that workspace through this UI.
+The guest cookie remains a separate HTTP-only, Secure, SameSite=Lax UUID. Entering or leaving an account preserves guest access without importing guest sessions or credits. The signed-in account starts with its own profile. The API returns only identity mode, optional display name, and the native top-level sign-in/out URLs. It does not return the account scope or email. GET is non-cacheable.
+
+Profile names require 1–32 Unicode code points without control characters; avatars are restricted to 01–04. Reset deletes only the current scope's demo profile, sessions and redemptions in a D1 batch, preserving login and the guest cookie. It cannot remove public Devnet records. No coach roles, arena memberships or physical identity checks exist in this stage.
 
 ## Data contracts
 
 `SessionInput` contains exactly `sessionId`, `source`, `rounds` and `events`. Source must equal `simulator`. The API restricts session IDs to 8–100 alphanumeric, underscore or hyphen characters.
 
-Every round contains `id`, `station`, `startMs`, `endMs`. IDs run 1–12. Six stations appear in fixed order twice: volume, technique, power, speed, VR and reflex. Each synthetic round lasts 6,000 milliseconds; the complete replay lasts 72 seconds. This is a fixed demonstration BOD, not the production class solver.
+Every round contains `id`, `station`, `startMs`, `endMs`. IDs run 1–12. Allowed station types are volume, technique, power, speed, VR and reflex. Consecutive rounds cannot use the same station; neither station coverage nor a specific cyclic order is required. Each synthetic round lasts 6,000 milliseconds; the complete replay lasts 72 seconds. The generator supplies a non-uniform illustrative journey. The full-class production Solver is not connected; this individual payload cannot validate class capacity. Rules version is `demo-1.1.0`.
 
 Every event contains `id`, `sessionId`, `roundId`, `station`, `timestampMs`, `accuracy` and `intensity`. Accuracy and intensity are synthetic values in [0,1]. IDs must be unique within the session; session/station/round associations must agree; integer timestamps must strictly increase and fall inside half-open round windows `[startMs, endMs)`. Each round requires at least one event. The request permits 12–2,400 events. Missing/unknown fields and nonfinite numeric values are rejected.
 
@@ -60,7 +62,7 @@ For validated events:
 
 The complete validated input event stream, result and hash are persisted in D1. The API returns `input: SessionInput | null` with each session so a receipt can be reproduced after page reload. The nullable input column was added by migration `0001`; older rows can lack a preimage and must not be presented as independently reproducible. The hash covers `JSON.stringify({sessionId: input.sessionId, source: 'simulator', rulesVersion: result.rulesVersion, rounds: input.rounds, events: input.events, result})`, encoded as UTF-8 and hashed with SHA-256. Preserve this property order when reproducing the digest. It binds that particular serialized declaration, not a physical athlete.
 
-Completion uses one `INSERT OR IGNORE ... SELECT` statement with a 30-session-per-guest cap. The composite primary key guarantees only one credited row for a session within that guest. Replaying identical input returns the existing result; reusing the ID with another hash returns a conflict. Separate guests can use the same session ID independently.
+Completion uses one `INSERT OR IGNORE ... SELECT` statement with a 30-session-per-guest cap. The composite primary key guarantees only one credited row for a session within that guest. Replaying canonically identical saved input returns the original result, hash and rules version before applying current rules. Changed input under the same ID returns a conflict. Existing stored inputs are immutable; a rules update never rewrites a historical receipt. Separate guests can use the same session ID independently.
 
 Redemption uses one conditional insert whose balance condition and write execute together. The composite benefit key permits one redemption of each benefit per guest. Parallel requests cannot create a second redemption or overdraw the recorded balance. Current fictional benefits cost 10 and 25 demo JAB. Demo JAB are database points with no monetary value; there is no SPL token mint.
 
@@ -68,12 +70,12 @@ Redemption uses one conditional insert whose balance condition and write execute
 
 | Action | Behavior |
 |---|---|
-| `GET /api/demo` | Current guest profile, recent sessions, redemptions and derived balance |
+| `GET /api/demo` | Current account/guest profile, recent sessions, redemptions, derived balance and identity descriptor |
 | `profile` | Create/update display name and avatar |
 | `complete` | Validate synthetic input, compute result/hash and credit once |
 | `redeem` | Redeem one supported fictional benefit if balance allows |
-| `anchor` | Submit or recheck the Devnet receipt of an existing guest-owned session |
-| `reset` | Delete current guest's stored demo state and rotate identifier |
+| `anchor` | Submit or recheck the Devnet receipt of an existing session owned by the current scope |
+| `reset` | Delete the current scope's stored demo state, preserving account sign-in and guest cookie |
 
 ## Devnet receipt lifecycle
 
@@ -97,6 +99,8 @@ A deployed acceptance check must create two separate guest contexts, complete/re
 
 ## Next steps toward physical Proof of Effort
 
-Replace the simulator with versioned sensor event ingestion; define device enrollment and revocation; sign device/session payloads; tie timestamps to server-issued session challenges; enforce replay protection across devices and session ownership; validate calibration and impossible-pattern detection with labeled physical data. Train and validate any athletic scoring separately from transaction submission. Add authenticated accounts, durable signer management, queue-based confirmation/recovery, abuse controls, observability and privacy/retention rules before real rewards are introduced.
+Replace the simulator with versioned sensor event ingestion; define device enrollment and revocation; sign device/session payloads; tie timestamps to server-issued session challenges; enforce replay protection across devices and session ownership; validate calibration and impossible-pattern detection with labeled physical data. Train and validate any athletic scoring separately from transaction submission. Add coach authorization, class membership, durable signer management, queue-based confirmation/recovery, abuse controls, observability and privacy/retention rules before real rewards are introduced.
 
 Blockchain can attest to publication of a result. Authenticating the physical effort remains an upstream hardware, identity and validation problem.
+
+Stage 1 verification adds identity isolation, cookie spoof rejection, profile bounds and actual route-handler tests with mocked trusted identity. Browser sign-in and cross-device UX require the user acceptance pass; unit tests do not establish a completed provider login.

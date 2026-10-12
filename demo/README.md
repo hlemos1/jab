@@ -6,8 +6,8 @@ A working, deliberately bounded web prototype for the Colosseum 2026 submission.
 
 ## Try the loop
 
-1. Choose English or Portuguese and create a guest display profile (no email required).
-2. Start the accelerated 72-second CombatFit replay: six station types, 12 rounds, two visits per station. You may skip the animation.
+1. Choose English or Portuguese. Open **My account** and sign in with ChatGPT, or continue with a separate guest profile.
+2. Start the accelerated 72-second CombatFit replay: six station types and 12 rounds without consecutive station repetition. The example journey is illustrative; no universal coverage is required. You may skip the animation.
 3. The server validates synthetic events, calculates an illustrative score and credits demo JAB once per session.
 4. Inspect the session digest and request an optional Solana Devnet receipt.
 5. Redeem a fictional guest pass for 10 demo JAB or gear credit for 25. Nothing is purchased or booked.
@@ -19,7 +19,7 @@ A working, deliberately bounded web prototype for the Colosseum 2026 submission.
 |---|---|
 | Responsive React interface; English/Portuguese | SINAPSE sensor events, effort, accuracy and intensity |
 | Server-side schema, sequence and round validation | Calibrated physical effort measurement or physical antifraud |
-| D1 persistence scoped to an anonymous browser cookie | Verified identity, account recovery and cross-device sign-in |
+| Native Sites account sign-in, editable profile, per-account D1 history; separate guest mode | Coach roles, class membership and production participation |
 | Atomic session-credit deduplication and benefit redemption | SPL JAB token, transferable balance or real benefit fulfilment |
 | SHA-256 digest of canonical session data and result | Production STRIKE score (this demo has an explicit illustrative formula) |
 | Real Memo transaction construction, signing, submission and verification code for Solana Devnet | Mainnet deployment, custom Solana program, hardware attestation |
@@ -33,8 +33,10 @@ This standalone demonstrator was built on October 12, 2026 with AI coding assist
 ## Code map
 
 - `app/page.tsx`, `app/globals.css`: athlete experience and technical lab.
+- `components/strikex/`: account page, arena art, shared types, stations and EN/PT copy.
+- `lib/identity.ts`, `app/chatgpt-auth.ts`: server identity and isolated demo scopes.
 - `lib/effort.ts`: deterministic generator and untrusted-input validation.
-- `app/api/demo/route.ts`: guest API, digest generation, atomic writes and receipt lifecycle.
+- `app/api/demo/route.ts`: account/guest API, digest generation, atomic writes and receipt lifecycle.
 - `lib/solana.ts`: zero-dependency Ed25519 signing, legacy Memo serialization and RPC verification.
 - `db/schema.ts`, `drizzle/`: durable demo profile, session and redemption schema.
 - `tests/`: engine, chain-verification and SQLite invariant tests.
@@ -54,12 +56,16 @@ pnpm run build
 
 The managed deployment applies tracked D1 migrations and binds the database as `DB`. For an independent Cloudflare deployment, provide a D1 database binding and apply `drizzle/*.sql` before serving requests. The GitHub export omits the managed Site project ID; configure your own deployment identity and D1 binding.
 
-No real wallet, payment credentials or email service are needed. Receipt sponsorship uses an ephemeral server-only key funded only by the public Devnet faucet. This is a demo convenience, not production custody or a guaranteed available sponsorship service.
+Native ChatGPT sign-in is provided by Sites dispatch; independent hosting must supply a trusted identity adapter and must not trust client-supplied identity headers. No real wallet, payment credentials or separate email service are needed. Receipt sponsorship uses an ephemeral server-only key funded only by the public Devnet faucet. This is a demo convenience, not production custody or a guaranteed available sponsorship service.
 
 ## Data and limits
 
-Demo records are server-persisted for the browser's random HttpOnly cookie. Clearing cookies loses access; use **Reset demo** to delete this browser's records. Display names never enter the on-chain memo. Each profile is limited to 30 stored sessions; benefits are redeemable once each. There is no value associated with balances. This public prototype is not hardened against automated creation of many guest profiles.
+Signed-in records are scoped to the stable Sites user identity and can be recovered by signing into the same account on another device. Guest records remain scoped to a random HttpOnly cookie; clearing it loses guest access. Guest and account histories are separate and never merged automatically. **Reset demo** deletes only the current scope’s demonstration profile, sessions and points; account sign-in stays active. Display names never enter the on-chain memo. Each profile is limited to 30 stored sessions; benefits are redeemable once each. There is no value associated with balances. This public prototype is not hardened against automated creation of many guest profiles.
 
 ## Ownership
 
 Copyright 2026 IRON GUARDIAN - LDA. Public availability of this demonstrator does not grant rights to StrikeX branding, proprietary hardware, firmware or production software. No additional open-source license is granted here.
+
+## Current delivery
+
+Stage 1: athlete account and profile, with visual validation pending. See `docs/STAGE-01-ACCEPTANCE.md`. Class operations, production Solver integration and coach permissions remain later deliveries.

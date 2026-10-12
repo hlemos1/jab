@@ -3,16 +3,32 @@ import test from 'node:test';
 // @ts-expect-error Node's native TypeScript runner requires the explicit .ts extension.
 import { generateSession, validateSession, STATIONS } from '../lib/effort.ts';
 
-test('synthetic session is deterministic and visits every station twice', () => {
+test('synthetic session is deterministic with an illustrative nonuniform journey', () => {
   const input = generateSession('test-session', 123);
   assert.deepEqual(input, generateSession('test-session', 123));
-  for (const station of STATIONS) assert.equal(input.rounds.filter((round: { station: string }) => round.station === station).length, 2);
+  const visits = STATIONS.map((station: string) => input.rounds.filter((round: { station: string }) => round.station === station).length);
+  assert.deepEqual(visits, [3, 3, 3, 1, 1, 1]);
   assert.equal(input.rounds.at(-1)?.endMs, 72_000);
   const result = validateSession(input);
   assert.equal(result.valid, true);
   assert.deepEqual(result.errors, []);
   assert.ok(result.score > 0 && result.score <= 100);
   assert.equal(result.reward, Math.floor(result.score / 5));
+  assert.equal(result.rulesVersion, 'demo-1.1.0');
+});
+
+test('accepts a different nonuniform journey without requiring all-station coverage', () => {
+  const input = generateSession('alternate-journey');
+  for (const round of input.rounds) round.station = round.id % 2 ? 'volume' : 'technique';
+  for (const event of input.events) event.station = input.rounds[event.roundId - 1].station;
+  assert.equal(validateSession(input).valid, true);
+});
+
+test('rejects consecutive identical stations even when their events match', () => {
+  rejected((input) => {
+    input.rounds[1].station = input.rounds[0].station;
+    for (const event of input.events) if (event.roundId === 2) event.station = input.rounds[1].station;
+  });
 });
 
 function rejected(mutate: (input: ReturnType<typeof generateSession>) => unknown) {

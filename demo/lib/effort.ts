@@ -4,7 +4,7 @@
  * are illustrative, uncalibrated rules, not StrikeX's production STRIKE score.
  * Duplicate SESSION claims must additionally be prevented atomically by storage.
  */
-export const RULES_VERSION = 'demo-1.0.0';
+export const RULES_VERSION = 'demo-1.1.0';
 export const STATIONS = ['volume', 'technique', 'power', 'speed', 'vr', 'reflex'] as const;
 export const ROUND_DURATION_MS = 6_000;
 export const SESSION_DURATION_MS = 72_000;
@@ -41,7 +41,11 @@ export interface SessionResult {
   rulesVersion: string;
 }
 
-/** Fixed demonstrator BOD: every athlete visits each of six stations twice. */
+/**
+ * One illustrative, nonuniform athlete journey, not the production Solver.
+ * Whole-class capacity and athlete compatibility require a roster assignment
+ * matrix and cannot be established from this single-athlete demonstration.
+ */
 export function generateSession(sessionId: string, seed = 42): SessionInput {
   if (!validIdentifier(sessionId)) throw new Error('Invalid session identifier.');
   if (!Number.isFinite(seed)) throw new Error('Seed must be finite.');
@@ -50,9 +54,10 @@ export function generateSession(sessionId: string, seed = 42): SessionInput {
     state = (Math.imul(1664525, state) + 1013904223) >>> 0;
     return state / 4294967296;
   };
-  const rounds = Array.from({ length: 12 }, (_, index): Round => ({
+  const journey: StationId[] = ['volume', 'technique', 'power', 'volume', 'speed', 'technique', 'power', 'volume', 'vr', 'technique', 'reflex', 'power'];
+  const rounds = journey.map((station, index): Round => ({
     id: index + 1,
-    station: STATIONS[index % STATIONS.length],
+    station,
     startMs: index * ROUND_DURATION_MS,
     endMs: (index + 1) * ROUND_DURATION_MS,
   }));
@@ -116,9 +121,12 @@ export function validateSession(input: unknown): SessionResult {
     if (!isRecord(item) || !exactKeys(item, ['id', 'station', 'startMs', 'endMs'])) {
       fail(`Round ${index + 1}: invalid schema.`); return;
     }
-    if (item.id !== index + 1 || !station(item.station) || item.station !== STATIONS[index % 6]
+    if (item.id !== index + 1 || !station(item.station)
       || item.startMs !== index * ROUND_DURATION_MS || item.endMs !== (index + 1) * ROUND_DURATION_MS) {
       fail(`Round ${index + 1}: invalid station, sequence or time window.`); return;
+    }
+    if (index > 0 && rounds[index - 1]?.station === item.station) {
+      fail(`Round ${index + 1}: consecutive rounds cannot repeat the same station.`); return;
     }
     rounds.push({ id: item.id as number, station: item.station, startMs: item.startMs as number, endMs: item.endMs as number });
   });
