@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@/components/strikex/brand.css";
+import "@/components/strikex/onboarding.css";
 
 export const metadata: Metadata = {
   title: "StrikeX · Proof of Effort",
   description: "Experience the StrikeX loop: train, validate, progress. Interactive demo with synthetic SINAPSE telemetry and optional Solana Devnet receipts.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/brand/strikex-logo.png",
+    shortcut: "/brand/strikex-logo.png",
   },
 };
 
