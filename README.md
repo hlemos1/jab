@@ -4,7 +4,30 @@ Connecting real physical effort with measurable progress and useful digital bene
 
 JAB$ is the Web3 initiative within the StrikeX ecosystem. StrikeX combines training software, an athlete app, connected equipment and physical fitness experiences. JAB$ extends that foundation toward incentives linked to validated participation, with Solana as the intended network.
 
-This repository provides a public project overview for Colosseum 2026.
+This repository contains the public project overview and a standalone interactive demonstrator for Colosseum 2026.
+
+## Try the prototype
+
+**[Open StrikeX · Proof of Effort](https://strikex-proof-of-effort.lemos10.chatgpt.site)** · **[Source and setup](demo/README.md)**
+
+Create a demo profile, replay 12 training rounds, receive demo JAB, inspect server validation and request an optional Solana Devnet receipt. Sensor telemetry and benefits are simulated. There is no token minting or physical-effort proof.
+
+The standalone prototype was built on October 12, 2026 with AI coding assistance. Public Devnet faucet availability prevented a confirmed live receipt during development; the integration does not display confirmation without verifying the exact transaction. See [technical scope](demo/docs/ARCHITECTURE.md) and [Solana details](demo/docs/SOLANA.md).
+
+## Review the submission
+
+| Review path | Evidence |
+|---|---|
+| [Pitch in English and Portuguese](demo/docs/PITCH.md) | A concise product story tied to implemented behavior |
+| [Interactive pitch, architecture and lab](https://strikex-proof-of-effort.lemos10.chatgpt.site/?view=system) | Inspect the flow, run local scenarios and replay a saved session against the server |
+| [Public architecture](demo/docs/ARCHITECTURE.md) | Authority boundaries, separate session/class flows and on/off-chain data |
+| [Implementation contracts](demo/docs/IMPLEMENTATION.md) | Validation, persistence, authorization and concurrency behavior |
+| [MVP roadmap](demo/docs/ROADMAP.md) | Dependencies and measurable acceptance gates |
+| [Publication boundaries](demo/docs/PUBLIC-BOUNDARIES.md) | What the public demo includes and what remains proprietary |
+
+For reproducible checks, run `pnpm run check` from `demo/` after installing dependencies (Node 24 and Python 3). This runs type checking, domain/API tests and SQLite invariant suites. A passing suite is not evidence of physical effort or a confirmed live blockchain transaction.
+
+Session receipts can be exported and checked locally in the app. The verifier checks content against the supplied digest; it does not authenticate the issuer. Shared class operations do not feed the demonstration JAB ledger.
 
 ## The problem
 
@@ -40,7 +63,7 @@ As of October 11, 2026:
 
 Franchise discussions and expressions of interest are pipeline, not signed locations or booked revenue.
 
-The core fitness product predates the hackathon. JAB$ is the Web3 extension being developed on that foundation. This documentation repository does not include a deployed Solana program or proprietary implementation code.
+The core fitness product predates the hackathon. JAB$ is the Web3 extension being developed on that foundation. The new `demo/` directory contains standalone prototype code; it does not include a custom deployed Solana program or pre-existing proprietary implementation code.
 
 ## Sustainable incentives and business model
 
@@ -56,9 +79,9 @@ Applications involving real-world assets remain an area for future exploration; 
 |---|---|
 | Standalone workout-planning module and browser simulator | JavaScript, Node.js and HTML; developed separately from the main Strike OS |
 | Web3 direction | Solana; integration in development |
-| This repository | Markdown documentation |
+| This repository | Project documentation and a standalone React/TypeScript + Worker/D1 demonstrator |
 
-This repository is a project overview. No installation is required.
+The hosted demo requires no installation. To run its source and tests, see [demo/README.md](demo/README.md).
 
 ## Team
 
@@ -75,6 +98,6 @@ The team combines business and franchising experience with software development 
 
 StrikeX operates through IRON GUARDIAN - LDA, a Portuguese private limited company.
 
-This repository contains public-facing documentation. Proprietary software, firmware, internal architecture, credentials, personal training data and confidential commercial materials are not included.
+This repository contains public-facing documentation and the newly authored standalone demo. Pre-existing proprietary software, firmware, private architecture, credentials, personal training data and confidential commercial materials are not included.
 
 See [NOTICE.md](NOTICE.md) for the publication scope.

@@ -1,0 +1,4 @@
+import { stations } from './stations';
+
+export function ArenaArt({active=-1}:{active?:number}){return <div className="arena-art" aria-hidden="true"><div className="arena-orbit orbit-one"/><div className="arena-orbit orbit-two"/><div className="arena-orbit orbit-three"/><div className="arena-floor"><div className="floor-grid"/><div className="floor-center"><span>STRIKE<span className="x">X</span></span><small>PROOF OF EFFORT</small></div>{stations.map((s,i)=><div key={s.id} className={`arena-pod pod-${i} ${active===i?'pod-active':''}`}><div className="pod-light"/><div className="punchbag"><span/></div><span className="pod-number">0{i+1}</span></div>)}</div><div className="art-coordinate coord-top">38°41′N / 09°25′W</div><div className="art-coordinate coord-bottom">COMBATFIT ARENA — 06 STATIONS</div><div className="art-cross cross-one">+</div><div className="art-cross cross-two">+</div></div>}
+
