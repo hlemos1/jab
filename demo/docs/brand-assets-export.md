@@ -1,5 +1,10 @@
-# Brand asset export pending
+# Brand asset export complete
 
-This source export contains the brand UI and onboarding. The published Site includes four supplied brand images. Copying those private-source images to this GitHub repository is awaiting explicit authorization after automatic approval review blocked that export.
+The user explicitly authorized copying the four supplied StrikeX brand images to hlemos1/jab on 2026-10-13. The strikex-proof-of-effort-demo branch now includes the exact files used by the published Site:
 
-Missing files: public/brand/strikex-logo.png, arena.webp, immersion.webp, reflex.webp. Do not source or recreate them automatically. Until approved and added, a local build will have missing brand imagery. The self-hosted Barlow font and its SIL OFL license are included.
+- public/brand/strikex-logo.png
+- public/brand/arena.webp
+- public/brand/immersion.webp
+- public/brand/reflex.webp
+
+File contents were verified against their Git blob hashes during export. See brand-identity.md for provenance and usage. The complete Brand Book and franchise dossier are not included.
