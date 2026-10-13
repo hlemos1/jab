@@ -10,6 +10,11 @@ export const ROUND_DURATION_MS = 6_000;
 export const SESSION_DURATION_MS = 72_000;
 export type StationId = (typeof STATIONS)[number];
 
+/** Public session IDs share the persistence and receipt contract; event IDs are separate. */
+export function isSessionId(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-zA-Z0-9_-]{8,100}$/.test(value);
+}
+
 export interface Round {
   id: number;
   station: StationId;
@@ -47,7 +52,7 @@ export interface SessionResult {
  * matrix and cannot be established from this single-athlete demonstration.
  */
 export function generateSession(sessionId: string, seed = 42): SessionInput {
-  if (!validIdentifier(sessionId)) throw new Error('Invalid session identifier.');
+  if (!isSessionId(sessionId)) throw new Error('Invalid session identifier.');
   if (!Number.isFinite(seed)) throw new Error('Seed must be finite.');
   let state = seed >>> 0;
   const random = () => {
@@ -108,7 +113,7 @@ export function validateSession(input: unknown): SessionResult {
   });
   if (!isRecord(input)) { fail('Session must be an object.'); return invalid(); }
   if (!exactKeys(input, ['sessionId', 'source', 'rounds', 'events'])) fail('Session schema contains missing or unknown fields.');
-  if (!validIdentifier(input.sessionId)) fail('Invalid session identifier.');
+  if (!isSessionId(input.sessionId)) fail('Invalid session identifier.');
   if (input.source !== 'simulator') fail('Only explicitly synthetic simulator data is supported.');
   if (!Array.isArray(input.rounds) || input.rounds.length !== 12) fail('Exactly 12 rounds are required.');
   if (!Array.isArray(input.events) || input.events.length < 12 || input.events.length > 2400) fail('Session requires 12–2400 events.');

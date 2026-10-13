@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "@/components/strikex/brand.css";
 import "@/components/strikex/onboarding.css";
+import "@/components/strikex/system.css";
 
 export const metadata: Metadata = {
   title: "StrikeX · Proof of Effort",

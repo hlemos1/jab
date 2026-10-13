@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 // @ts-expect-error Node's native TypeScript runner requires the explicit .ts extension.
-import { generateSession, validateSession, STATIONS } from '../lib/effort.ts';
+import { generateSession, isSessionId, validateSession, STATIONS } from '../lib/effort.ts';
 
 test('synthetic session is deterministic with an illustrative nonuniform journey', () => {
   const input = generateSession('test-session', 123);
@@ -76,7 +76,29 @@ test('score is bounded and stable across replay seeds', () => {
   }
 });
 test('maximum supported session identifier remains valid in generated events', () => {
-  assert.equal(validateSession(generateSession('a'.repeat(128))).valid, true);
-  assert.throws(() => generateSession('a'.repeat(129)));
+  assert.equal(validateSession(generateSession('a'.repeat(100))).valid, true);
+  assert.throws(() => generateSession('a'.repeat(101)));
   assert.throws(() => generateSession('test-session', Infinity));
+});
+
+test('session identifiers use the same bounded public contract as persistence', () => {
+  for (const id of ['a'.repeat(8), 'a'.repeat(100), '_session-01']) {
+    assert.equal(isSessionId(id), true);
+    const input = generateSession(id);
+    assert.equal(validateSession(input).valid, true);
+    assert.ok(input.events.every((event: { id: string }) => event.id.includes(':')));
+  }
+  for (const id of ['a'.repeat(7), 'a'.repeat(101), 'session:01']) {
+    assert.equal(isSessionId(id), false);
+    assert.throws(() => generateSession(id));
+    const input = generateSession('test-session');
+    input.sessionId = id;
+    for (const event of input.events) event.sessionId = id;
+    const result = validateSession(input);
+    assert.equal(result.valid, false);
+    assert.equal(result.score, 0);
+    assert.equal(result.reward, 0);
+    assert.ok(result.errors.includes('Invalid session identifier.'));
+  }
+  for (const value of [null, undefined, 12345678, {}]) assert.equal(isSessionId(value), false);
 });

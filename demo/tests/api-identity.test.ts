@@ -4,6 +4,10 @@ import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 // @ts-expect-error Native runner requires explicit extension.
 import * as identity from '../lib/identity.ts';
+// @ts-expect-error Native runner requires explicit extension.
+import * as effort from '../lib/effort.ts';
+// @ts-expect-error Native runner requires explicit extension.
+import * as sessionReceipt from '../lib/session-receipt.ts';
 const cookieA='11111111-1111-4111-8111-111111111111';
 const cookieB='22222222-2222-4222-8222-222222222222';
 // Execute the actual route with its platform imports substituted at the boundary.
@@ -26,7 +30,8 @@ function harness(){
     'cloudflare:workers':{env:{DB:db}},
     '@/app/chatgpt-auth':{getChatGPTUser:async()=>user},
     '@/lib/identity':identity,
-    '@/lib/effort':{validateSession:()=>{throw new Error('Historical replay must not revalidate against newer rules.');}},
+    '@/lib/session-receipt':sessionReceipt,
+    '@/lib/effort':{isSessionId:effort.isSessionId,validateSession:()=>{throw new Error('Historical replay must not revalidate against newer rules.');}},
     '@/lib/solana':{},
   };
   const source=readFileSync(new URL('../app/api/demo/route.ts',import.meta.url),'utf8');

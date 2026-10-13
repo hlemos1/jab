@@ -1,12 +1,12 @@
 import { env } from 'cloudflare:workers';
 import { getChatGPTUser } from '@/app/chatgpt-auth';
 import { demoGuestId, resolveDemoIdentity, validDemoProfile } from '@/lib/identity';
-import { validateSession, type SessionInput } from '@/lib/effort';
+import { isSessionId, validateSession, type SessionInput } from '@/lib/effort';
+import { sessionReceiptHash } from '@/lib/session-receipt';
 import { anchorReceipt, verifyReceipt } from '@/lib/solana';
 
 export const dynamic = 'force-dynamic';
 const COOKIE = 'strikex_demo_v1';
-const ID = /^[a-zA-Z0-9_-]{8,100}$/;
 type Row = {id:string;created_at:string;result:string;input:string|null;hash:string;chain_status:string;signature:string|null;chain_error:string|null;anchor_at:string|null};
 const expose = (s:Row) => ({id:s.id,createdAt:s.created_at,result:JSON.parse(s.result),hash:s.hash,input:s.input?JSON.parse(s.input):null,chainStatus:s.chain_status,signature:s.signature,chainError:s.chain_error});
 function guest(request:Request) {
@@ -62,7 +62,7 @@ export async function POST(request:Request){
     if(!profile)return reply({error:'Create your demo profile first.'},guestId,401);
     if(body.action==='complete'){
       const requestedId=(body.input && typeof body.input==='object' && !Array.isArray(body.input))?(body.input as Record<string,unknown>).sessionId:null;
-      if(typeof requestedId==='string' && ID.test(requestedId)){
+      if(isSessionId(requestedId)){
         const saved=await db.prepare('SELECT * FROM demo_sessions WHERE guest_id=? AND id=?').bind(id,requestedId).first<Row>();
         if(saved?.input){
           if(canonicalJSON(JSON.parse(saved.input))!==canonicalJSON(body.input))return reply({error:'This session ID already exists with different data.'},guestId,409);
@@ -72,9 +72,8 @@ export async function POST(request:Request){
       const result=validateSession(body.input);
       if(!result.valid)return reply({error:'Session rejected.',result},guestId,422);
       const input=body.input as SessionInput;
-      if(!ID.test(input.sessionId))return reply({error:'Invalid session ID.'},guestId,400);
-      const canonical=JSON.stringify({sessionId:input.sessionId,source:'simulator',rulesVersion:result.rulesVersion,rounds:input.rounds,events:input.events,result});
-      const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical)))).map(v=>v.toString(16).padStart(2,'0')).join('');
+      if(!isSessionId(input.sessionId))return reply({error:'Invalid session ID.'},guestId,400);
+      const hash=await sessionReceiptHash(input,result);
       const inserted=await db.prepare('INSERT OR IGNORE INTO demo_sessions(id,guest_id,created_at,result,hash,reward,input) SELECT ?,?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM demo_sessions WHERE guest_id=?)<30').bind(input.sessionId,id,now,JSON.stringify(result),hash,result.reward,JSON.stringify(input),id).run();
       const existing=await db.prepare('SELECT * FROM demo_sessions WHERE guest_id=? AND id=?').bind(id,input.sessionId).first<Row>();
       if(!existing)return reply({error:'Demo limit reached. Reset your demo to start again.'},guestId,429);

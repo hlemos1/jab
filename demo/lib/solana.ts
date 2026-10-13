@@ -1,4 +1,6 @@
 /** Server-only Devnet receipt sponsor. Never import this module into a client component. */
+// @ts-expect-error Native TypeScript tests require explicit extensions.
+import { isSessionId } from './effort.ts';
 export const DEVNET_RPC = "https://api.devnet.solana.com";
 export const MEMO_PROGRAM = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
 const ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
@@ -53,7 +55,7 @@ function shortVec(length: number): number[] {
 }
 
 export function receiptMemo(sessionId: string, hash: string): string {
-  if (!/^[a-zA-Z0-9_-]{1,100}$/.test(sessionId) || !/^[a-f0-9]{64}$/.test(hash)) {
+  if (!isSessionId(sessionId) || !/^[a-f0-9]{64}$/.test(hash)) {
     throw new Error("Invalid session ID or SHA-256 receipt hash");
   }
   return `STRIKEX_DEMO_V1|${sessionId}|${hash}|synthetic`;
