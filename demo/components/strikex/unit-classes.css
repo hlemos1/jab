@@ -1,0 +1,60 @@
+.unit-classes-page .uc-setup {
+  margin: 28px 0;
+  padding: 28px;
+  border: 1px solid #475e38;
+  border-radius: 7px;
+  background: linear-gradient(140deg, #25331d, #171f13);
+}
+.uc-setup-heading h2, .uc-empty h2 { font-size: 27px; font-weight: 500; letter-spacing: -.7px; margin: 15px 0; }
+.uc-setup-heading p, .uc-empty p, .uc-athlete-note { color: #b0c29e; font-size: 12px; line-height: 1.85; }
+.uc-setup-heading p { max-width: 700px; }
+.uc-config { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin: 25px 0; }
+.uc-config label { display: flex; flex-direction: column; gap: 10px; font-size: 11px; color: #b7c9a5; }
+.uc-config input { min-width: 0; width: 100%; }
+.uc-roster { border: 0; padding: 0; margin: 0; min-width: 0; }
+.uc-roster legend { width: 100%; display: flex; align-items: center; justify-content: space-between; font-size: 15px; margin-bottom: 15px; }
+.uc-roster legend span { font: 11px monospace; color: #a7bd93; }
+.uc-roster > p { font-size: 12px; color: #b0c29e; line-height: 1.8; padding: 20px 0; }
+.uc-candidate { border: 1px solid #3d5131; background: #192613; border-radius: 5px; margin-bottom: 10px; }
+.uc-candidate.is-selected { border-color: #7c9865; background: #26371d; }
+.uc-athlete-check { display: flex; align-items: center; gap: 13px; padding: 16px; min-height: 52px; font-size: 13px; cursor: pointer; }
+.uc-athlete-check span { overflow-wrap: anywhere; min-width: 0; }
+.unit-classes-page input[type=checkbox] { appearance: auto; accent-color: #ed956e; width: 18px; height: 18px; min-height: 18px; padding: 0; flex: none; cursor: pointer; }
+.uc-exclusions { margin: 0 16px 16px 47px; }
+.uc-exclusions summary, .uc-sequences summary { cursor: pointer; font-size: 11px; color: #d0dfbd; line-height: 1.8; padding: 5px 0; }
+.uc-exclusions p { font-size: 10px; color: #a9be93; line-height: 1.8; margin: 12px 0; }
+.uc-exclusions > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.uc-exclusions label { display: flex; align-items: center; gap: 9px; min-height: 36px; font-size: 11px; color: #c6d8b4; cursor: pointer; }
+.uc-create-footer { display: flex; align-items: center; justify-content: space-between; gap: 25px; margin-top: 24px; }
+.uc-create-footer p { max-width: 440px; color: #a5ba90; font-size: 11px; line-height: 1.8; }
+.uc-create-footer .btn { gap: 10px; flex: none; }
+.uc-athlete-note { padding: 20px 23px; border: 1px solid #425c33; border-radius: 5px; background: #213019; margin: 25px 0; }
+.uc-own-station { grid-template-columns: minmax(0, 1fr); max-width: 480px; }
+.uc-sequences { margin-top: 27px; border-top: 1px solid #3d5131; padding-top: 18px; }
+.uc-sequences > summary { font-size: 12px; }
+.uc-sequence { margin: 21px 0; }
+.uc-sequence h3 { font-size: 13px; font-weight: 500; overflow-wrap: anywhere; margin-bottom: 13px; }
+.uc-sequence ol { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.uc-sequence li { border: 1px solid #3b5030; border-radius: 4px; padding: 12px 10px; color: #b8cba5; font-size: 11px; line-height: 1.5; }
+.uc-sequence li span { display: block; font: 9px monospace; color: #91a97a; margin-bottom: 7px; }
+.uc-sequence li.is-current { border-color: #d49670; background: #35412a; color: #f0ddca; }
+.uc-empty { padding: 32px; margin: 25px 0; border: 1px solid #435a34; border-radius: 7px; background: #202d19; }
+.uc-empty > svg { color: #b3cc96; }
+.uc-empty .btn { margin-top: 22px; }
+.unit-classes-page summary:focus-visible, .unit-classes-page a:focus-visible { outline: 2px solid #ed956e; outline-offset: 4px; }
+.unit-classes-page input:disabled, .unit-classes-page fieldset:disabled { opacity: .65; cursor: not-allowed; }
+@media (max-width: 800px) {
+  .uc-config { grid-template-columns: 1fr; }
+  .uc-sequence ol { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .uc-create-footer { align-items: flex-start; flex-direction: column; gap: 18px; }
+}
+@media (max-width: 500px) {
+  .unit-classes-page .uc-setup { padding: 20px; }
+  .uc-setup-heading h2, .uc-empty h2 { font-size: 24px; }
+  .uc-exclusions { margin-left: 16px; }
+  .uc-exclusions > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .uc-sequence ol { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .uc-sequence li { font-size: 10px; padding: 11px 8px; }
+  .uc-create-footer .btn { width: 100%; }
+  .unit-classes-page .unit-role { align-self: flex-start; margin-left: 0; }
+}

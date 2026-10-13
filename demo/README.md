@@ -15,6 +15,7 @@ A working, deliberately bounded web prototype for the Colosseum 2026 submission.
 7. In Class, save a class plan, open Coach panel and prepare a timed demo. Start, pause, reload and resume the server-backed 12-round clock.
 8. After a class ends, review each athlete as complete, partial or absent. Confirm the demo closeout, inspect the immutable receipt, verify its checksum and export JSON.
 9. Open **Unit & Team**, sign in, create a test unit and generate a single-use coach or athlete invitation. Accept it with another account to inspect role-specific access.
+10. Open **Unit classes**, select active athlete members and prepare a shared rehearsal. Managers and coaches control the server clock; each athlete sees only their own sequence.
 
 ## Actual scope
 
@@ -22,7 +23,7 @@ A working, deliberately bounded web prototype for the Colosseum 2026 submission.
 |---|---|
 | Responsive React interface; English/Portuguese | SINAPSE sensor events, effort, accuracy and intensity |
 | Server-side schema, sequence and round validation | Calibrated physical effort measurement or physical antifraud |
-| Native Sites account sign-in, editable profile, per-account D1 history; separate guest mode; test-unit manager/coach/athlete membership | Shared class operation, account-linked class participation and production participation |
+| Native Sites account sign-in, editable profile, per-account D1 history; separate guest mode; test-unit manager/coach/athlete membership and shared rehearsals | Verified attendance, account-linked closeout and production participation |
 | Atomic session-credit deduplication and benefit redemption | SPL JAB token, transferable balance or real benefit fulfilment |
 | SHA-256 digest of canonical session data and result | Production STRIKE score (this demo has an explicit illustrative formula) |
 | Real Memo transaction construction, signing, submission and verification code for Solana Devnet | Mainnet deployment, custom Solana program, hardware attestation |
@@ -42,6 +43,7 @@ This standalone demonstrator was built on October 12, 2026 with AI coding assist
 - `lib/class-planner.ts`, `app/api/classes/route.ts`: bounded class allocation and scope-owned saved plans.
 - `lib/class-run.ts`, `app/api/class-runs/route.ts`, `components/strikex/coach-page.tsx`: server-authoritative class timing and owner-scoped demo controls.
 - `lib/class-report.ts`, `app/api/class-reports/route.ts`, `components/strikex/class-reports-panel.tsx`: manual demo closeout, canonical checksums and immutable receipts.
+- `lib/unit-classes.ts`, `app/api/unit-classes/route.ts`, `components/strikex/unit-classes-page.tsx`: shared unit rehearsals with member-linked rosters and role-filtered responses.
 - `lib/effort.ts`: deterministic generator and untrusted-input validation.
 - `app/api/demo/route.ts`: account/guest API, digest generation, atomic writes and receipt lifecycle.
 - `lib/solana.ts`: zero-dependency Ed25519 signing, legacy Memo serialization and RPC verification.
@@ -79,7 +81,7 @@ Copyright 2026 IRON GUARDIAN - LDA. Public availability of this demonstrator doe
 
 ## Current delivery
 
-Stage 1: athlete account and profile, visually accepted by the user. Stage 2: server-generated and saved demonstration class plans for up to 11 athletes, station exclusions, 12 rounds, round/matrix/athlete views. Stage 3: own-class demo coaching with start/pause/resume/interrupt, server time, persistent snapshots and conflict-safe commands. Stage 4: manual demonstration participation review and immutable closeout receipts with export and checksum verification. Stage 5: account-linked test units, manager/coach/athlete roles and invitations. See `docs/STAGE-05-ACCEPTANCE.md` for visual acceptance. Production Solver integration, shared class operation, account-linked participation and physical telemetry remain later deliveries. Current automated verification: 85 TypeScript tests and 34 SQLite invariant tests.
+Stage 1: athlete account and profile, visually accepted by the user. Stage 2: server-generated and saved demonstration class plans for up to 11 athletes, station exclusions, 12 rounds, round/matrix/athlete views. Stage 3: own-class demo coaching with start/pause/resume/interrupt, server time, persistent snapshots and conflict-safe commands. Stage 4: manual demonstration participation review and immutable closeout receipts with export and checksum verification. Stage 5: account-linked test units, manager/coach/athlete roles and invitations. Stage 6: shared rehearsal classes with account-linked rosters, role-authorized controls and private athlete sequences. See `docs/STAGE-06-ACCEPTANCE.md` for visual acceptance. Production Solver integration, authorized account-linked closeout and physical telemetry remain later deliveries. Automated verification: 105 TypeScript tests and 34 SQLite invariant tests.
 
 ## Class planner boundaries
 
@@ -87,7 +89,7 @@ The Turma/Class tab generates a demonstration schedule with fixed capacities 3/3
 
 ## Coach demo boundaries
 
-Each account/guest scope may have one open class and 20 saved runs. The default rehearsal is 94 seconds (12 × 6 seconds of work + 11 × 2 seconds of rest). Reloading does not pause a running class. Commands use server time and an observed revision; stale commands cannot rewind a run. Completed/interrupted runs cannot resume and can be deleted individually. Saved runs preserve the original class snapshot even if the plan is deleted. These records do not generate points or prove physical effort. Unit roles do not yet grant access to another person's classes. Reset demo does not delete class plans or runs.
+Each account/guest scope may have one open class and 20 saved runs. The default rehearsal is 94 seconds (12 × 6 seconds of work + 11 × 2 seconds of rest). Reloading does not pause a running class. Commands use server time and an observed revision; stale commands cannot rewind a run. Completed/interrupted runs cannot resume and can be deleted individually. Saved runs preserve the original class snapshot even if the plan is deleted. These records do not generate points or prove physical effort. Unit roles do not grant access to another person's private demo classes. Shared unit classes use their own API and records. Reset demo does not delete class plans or runs.
 
 ## Class closeout boundaries
 
@@ -97,6 +99,14 @@ The report checksum is SHA-256 of UTF-8 canonical payload JSON (object keys sort
 
 ## Unit and team boundaries
 
-Authenticated accounts can own one test unit and join up to ten other units. Creating a test unit does not register an official StrikeX venue or grant global administration. The manager controls invitations and coach/athlete roles; coaches can view the roster; athletes see only their own membership. Display names are supplied by users and do not establish physical identity. Existing classes, reports, sessions and balances remain private to their original scopes.
+Authenticated accounts can own one test unit and join up to ten other units. Creating a test unit does not register an official StrikeX venue or grant global administration. The manager controls invitations and coach/athlete roles; coaches can view the roster; athletes see only their own membership. Display names are supplied by users and do not establish physical identity. Earlier personal classes, reports, sessions and balances remain private to their original scopes. Shared unit rehearsals are described below.
 
 Single-use invitation codes expire after seven days. Whoever holds a code can accept its selected role, so share it only with the intended recipient. The raw code is shown only on creation and never stored server-side; the database retains its SHA-256 hash. A lost response cannot recover the code: revoke that invitation and create another. There are 50 people per unit including its manager, 10 available invitations and 100 invitations total per unit. Membership removal or voluntary departure requires a new invitation to rejoin; a used code cannot reactivate access. Stable member IDs survive legitimate reentry. There is no unit deletion, rename, ownership transfer or invitation archive in this stage. Reset demo preserves units and memberships.
+
+## Shared unit rehearsal boundaries
+
+Managers and current coaches can create a unit class from one to eleven currently active members with the athlete role. The server resolves their names and persists stable membership IDs, the complete generated plan and timing as an immutable snapshot. Per-athlete station exclusions follow the same independent demo planner. Guests, arbitrary names and foreign-unit members cannot enter this roster.
+
+A unit can have one active rehearsal and twenty saved records. Managers/coaches can start, pause, resume, interrupt and delete terminal records. Roles and roster eligibility are rechecked at write time, and revisions prevent competing commands from rewinding the shared clock. Athletes receive only classes containing their own membership and only their own name/sequence. Removal or departure revokes access on subsequent requests; rejoining restores own historical access through the stable member ID.
+
+Class names are shared with selected athletes, so use a neutral class title. Clock completion is not an attendance declaration. No automatic closeout, reservation, check-in, physical measurement, points or on-chain receipt is created. The next stage adds explicit participation review and actor-attributed records. Reset demo preserves unit rehearsals.

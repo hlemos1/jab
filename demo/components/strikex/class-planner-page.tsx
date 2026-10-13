@@ -8,10 +8,10 @@ import type { Lang } from './types';
 import { stations } from './stations';
 
 type SavedClass = { id: string; createdAt: string; input: ClassInput; plan: ClassPlan };
-type Props = { lang: Lang; ready: boolean; account: boolean; onCoach: (planId?: string) => void; onUnits: () => void };
+type Props = { lang: Lang; ready: boolean; account: boolean; onCoach: (planId?: string) => void; onUnits: () => void; onUnitClasses: () => void };
 const initialRoster = (): Athlete[] => Array.from({ length: 11 }, (_, i) => ({ id: `athlete-${i + 1}`, name: `Atleta ${String(i + 1).padStart(2, '0')}`, excludedStations: [] }));
 
-export function ClassPlannerPage({ lang, ready, account, onCoach, onUnits }: Props) {
+export function ClassPlannerPage({ lang, ready, account, onCoach, onUnits, onUnitClasses }: Props) {
   const pt = lang === 'pt';
   const [input, setInput] = useState<ClassInput>(() => ({ name: 'CombatFit / BOD 001', athletes: initialRoster() }));
   const [saved, setSaved] = useState<SavedClass[]>([]);
@@ -95,7 +95,7 @@ export function ClassPlannerPage({ lang, ready, account, onCoach, onUnits }: Pro
   const invalid = !input.name.trim() || input.athletes.some(a => !a.name.trim() || a.excludedStations.length > 4);
 
   return <section className="inner-page class-page">
-    <div className="coach-entry"><button className="text-link" onClick={onUnits}>{tr('Unit & team', 'Unidade e equipe')}<Users size={16}/></button><button className="btn btn-subtle" onClick={() => onCoach(active?.id)}>{tr('Coach panel', 'Painel do coach')}<ArrowRight size={16}/></button></div>
+    <div className="coach-entry"><button className="btn btn-primary" onClick={onUnitClasses}>{tr('Unit classes', 'Aulas da unidade')}<Users size={16}/></button><button className="text-link" onClick={onUnits}>{tr('Unit & team', 'Unidade e equipe')}<Users size={16}/></button><button className="btn btn-subtle" onClick={() => onCoach(active?.id)}>{tr('Coach panel', 'Painel do coach')}<ArrowRight size={16}/></button></div>
     <div className="eyebrow">COMBATFIT / {tr('CLASS PLANNER', 'PLANEJADOR DE TURMA')}</div>
     <h1 className="page-title">{tr('One arena. Every athlete.', 'Uma arena. Cada atleta.')}<span></span></h1>
     <p className="page-subtitle">{tr('Build your class and preview where each athlete goes in every round.', 'Monte a turma e veja onde cada atleta fica em cada round.')}</p>

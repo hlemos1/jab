@@ -55,3 +55,13 @@ export const unitInvites = sqliteTable("demo_unit_invites", {
   codeHash: text("code_hash").notNull(), createdAt: text("created_at").notNull(), expiresAt: text("expires_at").notNull(),
   revokedAt: text("revoked_at"), claimedBy: text("claimed_by"), claimedAt: text("claimed_at"), claimNonce: text("claim_nonce"),
 }, (t) => [uniqueIndex("demo_unit_invites_hash").on(t.codeHash)]);
+
+// Shared class snapshots are independent of private demo plans and runs.
+export const unitClasses = sqliteTable("demo_unit_classes", {
+  unitId: text("unit_id").notNull(), id: text("id").notNull(),
+  createdAt: text("created_at").notNull(), updatedAt: text("updated_at").notNull(),
+  revision: integer("revision").notNull().default(0), requestInput: text("request_input").notNull(),
+  input: text("input").notNull(), plan: text("plan").notNull(), timing: text("timing").notNull(),
+  state: text("state").notNull(), active: integer("active").notNull().default(1),
+  lastCommandId: text("last_command_id"), lastCommandJson: text("last_command_json"),
+}, (t) => [primaryKey({columns: [t.unitId, t.id]}), uniqueIndex("demo_unit_classes_one_active").on(t.unitId).where(sql`${t.active} = 1`)]);
